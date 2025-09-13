@@ -1,11 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 interface TelegramWebApp {
   initData: string;
   ready: () => void;
   onEvent: (eventType: string, callback: () => void) => void;
+  version?: string;
+  platform?: string;
+  initDataUnsafe?: Record<string, unknown>;
+  themeParams?: Record<string, unknown>;
 }
 
 interface Telegram {
@@ -23,8 +27,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    const checkMembership = async () => {
+  const checkMembership = useCallback(async () => {
       try {
         console.log('🔍 Checking for Telegram WebApp...');
         console.log('window.Telegram exists:', !!window.Telegram);
@@ -38,7 +41,7 @@ export default function Home() {
 
           if (retryCount < 10) {
             setRetryCount(prev => prev + 1);
-            setTimeout(checkMembership, 1000);
+            setTimeout(() => checkMembership(), 1000);
             return;
           } else {
             console.error('❌ Failed to load Telegram WebApp after 10 attempts');
@@ -111,11 +114,12 @@ export default function Home() {
         setError('Произошла ошибка при проверке доступа');
         setLoading(false);
       }
-    };
+    }, [retryCount]);
 
+  useEffect(() => {
     console.log('Starting membership check...');
     checkMembership();
-  }, []);
+  }, [checkMembership]);
 
   if (loading) {
     return (
