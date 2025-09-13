@@ -25,12 +25,6 @@ export default function RootLayout({
         <Script
           src="https://telegram.org/js/telegram-web-app.js"
           strategy="beforeInteractive"
-          onLoad={() => {
-            console.log('✅ Telegram WebApp SDK loaded successfully');
-          }}
-          onError={() => {
-            console.error('❌ Failed to load Telegram WebApp SDK');
-          }}
         />
       </body>
     </html>
