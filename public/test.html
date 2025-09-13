@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram WebApp Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .info { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Telegram WebApp Test</h1>
+
+        <div class="info">
+            <h3>Информация о WebApp:</h3>
+            <p><strong>WebApp найден:</strong> <span id="webapp-found">Проверяем...</span></p>
+            <p><strong>initData присутствует:</strong> <span id="initdata-present">Проверяем...</span></p>
+            <p><strong>initData длина:</strong> <span id="initdata-length">Проверяем...</span></p>
+        </div>
+
+        <div class="info">
+            <h3>initData:</h3>
+            <pre id="initdata-content">Проверяем...</pre>
+        </div>
+
+        <button onclick="checkWebApp()">Проверить WebApp</button>
+        <button onclick="simulateInitData()">Симулировать initData</button>
+        <button onclick="openMiniApp()">Открыть Mini App</button>
+
+        <div class="info">
+            <h3>Инструкции:</h3>
+            <ol>
+                <li>Нажмите "Проверить WebApp" для диагностики</li>
+                <li>Если initData отсутствует, нажмите "Симулировать initData"</li>
+                <li>Затем нажмите "Открыть Mini App" для тестирования</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Мокаем Telegram WebApp для тестирования
+        window.Telegram = {
+            WebApp: {
+                initData: '',
+                ready: function() {
+                    console.log('Telegram WebApp ready called');
+                },
+                onEvent: function(event, callback) {
+                    console.log('Telegram WebApp onEvent:', event);
+                }
+            }
+        };
+
+        function checkWebApp() {
+            const webappFound = document.getElementById('webapp-found');
+            const initdataPresent = document.getElementById('initdata-present');
+            const initdataLength = document.getElementById('initdata-length');
+            const initdataContent = document.getElementById('initdata-content');
+
+            if (window.Telegram && window.Telegram.WebApp) {
+                webappFound.textContent = 'Да';
+                webappFound.style.color = 'green';
+
+                const initData = window.Telegram.WebApp.initData;
+                initdataPresent.textContent = initData ? 'Да' : 'Нет';
+                initdataPresent.style.color = initData ? 'green' : 'red';
+
+                initdataLength.textContent = initData ? initData.length : '0';
+                initdataContent.textContent = initData || 'initData отсутствует';
+
+                console.log('WebApp found, initData:', initData);
+            } else {
+                webappFound.textContent = 'Нет';
+                webappFound.style.color = 'red';
+                initdataPresent.textContent = 'Нет';
+                initdataPresent.style.color = 'red';
+                initdataLength.textContent = '0';
+                initdataContent.textContent = 'WebApp не найден';
+
+                console.log('WebApp not found');
+            }
+        }
+
+        function simulateInitData() {
+            // Пример реального initData (нужно заменить на актуальный)
+            const mockInitData = 'query_id=AAHdF6IQAAAAAN0XohC8vB2I&user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22testuser%22%2C%22language_code%22%3A%22ru%22%7D&auth_date=1672531200&hash=abc123def456';
+
+            window.Telegram.WebApp.initData = mockInitData;
+
+            alert('initData симулирован! Теперь нажмите "Проверить WebApp"');
+            checkWebApp();
+        }
+
+        function openMiniApp() {
+            // Открываем основное приложение
+            window.location.href = '/';
+        }
+
+        // Автоматическая проверка при загрузке
+        window.addEventListener('load', function() {
+            setTimeout(checkWebApp, 500);
+        });
+    </script>
+</body>
+</html>
