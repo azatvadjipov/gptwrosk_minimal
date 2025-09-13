@@ -34,17 +34,24 @@ export default function Home() {
         console.log('window.Telegram.WebApp exists:', !!window.Telegram?.WebApp);
         console.log('Current URL:', window.location.href);
         console.log('User Agent:', navigator.userAgent);
+        console.log('Environment variables check:');
+        console.log('NEXT_PUBLIC_MEMBER_REDIRECT_URL:', process.env.NEXT_PUBLIC_MEMBER_REDIRECT_URL);
+        console.log('NEXT_PUBLIC_NON_MEMBER_REDIRECT_URL:', process.env.NEXT_PUBLIC_NON_MEMBER_REDIRECT_URL);
 
         // Wait for Telegram WebApp to be ready
         if (!window.Telegram?.WebApp) {
-          console.log(`❌ Telegram WebApp not found (attempt ${retryCount + 1}/10), waiting...`);
+          console.log(`❌ Telegram WebApp not found (attempt ${retryCount + 1}/15), waiting...`);
 
-          if (retryCount < 10) {
+          if (retryCount < 15) {
             setRetryCount(prev => prev + 1);
-            setTimeout(() => checkMembership(), 1000);
+            // Increase delay for mobile devices
+            const delay = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+              ? 1500
+              : 1000;
+            setTimeout(() => checkMembership(), delay);
             return;
           } else {
-            console.error('❌ Failed to load Telegram WebApp after 10 attempts');
+            console.error('❌ Failed to load Telegram WebApp after 15 attempts');
             setError('Не удалось подключиться к Telegram WebApp. Убедитесь, что приложение запущено через Telegram.');
             setLoading(false);
             return;
@@ -98,9 +105,21 @@ export default function Home() {
           return;
         }
 
-        // Get redirect URLs from environment (will be injected at build time)
-        const memberUrl = process.env.NEXT_PUBLIC_MEMBER_REDIRECT_URL || 'https://ваш-сайт-для-участников';
-        const nonMemberUrl = process.env.NEXT_PUBLIC_NON_MEMBER_REDIRECT_URL || 'https://ваш-сайт-для-гостей';
+        // Get redirect URLs from environment (NEXT_PUBLIC_ variables are available on client)
+        let memberUrl = process.env.NEXT_PUBLIC_MEMBER_REDIRECT_URL || 'https://ваш-сайт-для-участников';
+        let nonMemberUrl = process.env.NEXT_PUBLIC_NON_MEMBER_REDIRECT_URL || 'https://ваш-сайт-для-гостей';
+
+        // Fallback: try to get from URL hash parameters (for cases when env vars don't load)
+        if (memberUrl === 'https://ваш-сайт-для-участников') {
+          const urlParams = new URLSearchParams(window.location.hash.substring(1));
+          const fallbackMemberUrl = urlParams.get('member_url');
+          const fallbackNonMemberUrl = urlParams.get('non_member_url');
+
+          if (fallbackMemberUrl) memberUrl = decodeURIComponent(fallbackMemberUrl);
+          if (fallbackNonMemberUrl) nonMemberUrl = decodeURIComponent(fallbackNonMemberUrl);
+        }
+
+        console.log('Redirect URLs:', { memberUrl, nonMemberUrl });
 
         // Redirect based on membership status
         const redirectUrl = data.member ? memberUrl : nonMemberUrl;
