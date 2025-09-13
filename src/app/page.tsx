@@ -26,31 +26,48 @@ export default function Home() {
   useEffect(() => {
     const checkMembership = async () => {
       try {
+        console.log('🔍 Checking for Telegram WebApp...');
+        console.log('window.Telegram exists:', !!window.Telegram);
+        console.log('window.Telegram.WebApp exists:', !!window.Telegram?.WebApp);
+        console.log('Current URL:', window.location.href);
+        console.log('User Agent:', navigator.userAgent);
+
         // Wait for Telegram WebApp to be ready
         if (!window.Telegram?.WebApp) {
-          console.log('Telegram WebApp not found, waiting...');
+          console.log(`❌ Telegram WebApp not found (attempt ${retryCount + 1}/10), waiting...`);
+
           if (retryCount < 10) {
             setRetryCount(prev => prev + 1);
-            setTimeout(checkMembership, 500);
+            setTimeout(checkMembership, 1000);
             return;
           } else {
-            setError('Не удалось подключиться к Telegram WebApp. Попробуйте перезапустить приложение.');
+            console.error('❌ Failed to load Telegram WebApp after 10 attempts');
+            setError('Не удалось подключиться к Telegram WebApp. Убедитесь, что приложение запущено через Telegram.');
             setLoading(false);
             return;
           }
         }
 
+        console.log('✅ Telegram WebApp found!');
+        console.log('WebApp version:', window.Telegram.WebApp.version || 'unknown');
+        console.log('WebApp platform:', window.Telegram.WebApp.platform || 'unknown');
+
         // Ensure WebApp is ready
         if (typeof window.Telegram.WebApp.ready === 'function') {
+          console.log('📞 Calling WebApp.ready()...');
           window.Telegram.WebApp.ready();
         }
 
         // Get initData from Telegram WebApp
         const initData = window.Telegram.WebApp.initData;
 
-        console.log('Telegram WebApp initData:', initData ? 'present' : 'missing');
-        console.log('Full initData length:', initData?.length || 0);
-        console.log('Full initData (first 100 chars):', initData?.substring(0, 100));
+        console.log('📋 initData status:', initData ? 'present' : 'missing');
+        console.log('📏 initData length:', initData?.length || 0);
+        if (initData) {
+          console.log('📄 initData (first 200 chars):', initData.substring(0, 200));
+          console.log('🔍 initData contains user:', initData.includes('user='));
+          console.log('🔍 initData contains hash:', initData.includes('hash='));
+        }
 
         if (!initData || initData.trim() === '') {
           console.error('initData is empty or missing');

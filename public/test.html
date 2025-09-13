@@ -21,6 +21,7 @@
             <p><strong>WebApp найден:</strong> <span id="webapp-found">Проверяем...</span></p>
             <p><strong>initData присутствует:</strong> <span id="initdata-present">Проверяем...</span></p>
             <p><strong>initData длина:</strong> <span id="initdata-length">Проверяем...</span></p>
+            <div id="webapp-info">Загрузка...</div>
         </div>
 
         <div class="info">
@@ -33,11 +34,23 @@
         <button onclick="openMiniApp()">Открыть Mini App</button>
 
         <div class="info">
-            <h3>Инструкции:</h3>
+            <h3>Инструкции по настройке:</h3>
+            <ol>
+                <li><strong>Создайте бота:</strong> Используйте @BotFather, команда /newbot</li>
+                <li><strong>Настройте WebApp:</strong> В @BotFather используйте /setmenubutton и укажите URL вашего мини-приложения</li>
+                <li><strong>Проверьте URL:</strong> Мини-приложение должно открываться по HTTPS URL</li>
+                <li><strong>Тестируйте:</strong> Откройте бота в Telegram и нажмите кнопку меню</li>
+                <li><strong>Локальная отладка:</strong> Используйте эту страницу для тестирования</li>
+            </ol>
+        </div>
+
+        <div class="info">
+            <h3>Диагностика:</h3>
             <ol>
                 <li>Нажмите "Проверить WebApp" для диагностики</li>
                 <li>Если initData отсутствует, нажмите "Симулировать initData"</li>
                 <li>Затем нажмите "Открыть Mini App" для тестирования</li>
+                <li><strong>Важно:</strong> Откройте консоль браузера (F12) для просмотра логов</li>
             </ol>
         </div>
     </div>
@@ -61,28 +74,44 @@
             const initdataPresent = document.getElementById('initdata-present');
             const initdataLength = document.getElementById('initdata-length');
             const initdataContent = document.getElementById('initdata-content');
+            const webappInfo = document.getElementById('webapp-info');
+
+            console.log('🔍 Checking WebApp...');
+            console.log('window.Telegram:', window.Telegram);
+            console.log('window.Telegram.WebApp:', window.Telegram?.WebApp);
 
             if (window.Telegram && window.Telegram.WebApp) {
-                webappFound.textContent = 'Да';
+                webappFound.textContent = 'Да ✅';
                 webappFound.style.color = 'green';
 
-                const initData = window.Telegram.WebApp.initData;
-                initdataPresent.textContent = initData ? 'Да' : 'Нет';
+                const webApp = window.Telegram.WebApp;
+                const initData = webApp.initData;
+
+                initdataPresent.textContent = initData ? 'Да ✅' : 'Нет ❌';
                 initdataPresent.style.color = initData ? 'green' : 'red';
 
                 initdataLength.textContent = initData ? initData.length : '0';
                 initdataContent.textContent = initData || 'initData отсутствует';
 
-                console.log('WebApp found, initData:', initData);
+                webappInfo.innerHTML = `
+                    <strong>Версия:</strong> ${webApp.version || 'неизвестна'}<br>
+                    <strong>Платформа:</strong> ${webApp.platform || 'неизвестна'}<br>
+                    <strong>Цвет темы:</strong> ${webApp.themeParams?.bg_color || 'не указан'}<br>
+                    <strong>Инициализирован:</strong> ${webApp.initDataUnsafe ? 'Да' : 'Нет'}
+                `;
+
+                console.log('✅ WebApp found:', webApp);
+                console.log('📋 initData:', initData);
             } else {
-                webappFound.textContent = 'Нет';
+                webappFound.textContent = 'Нет ❌';
                 webappFound.style.color = 'red';
-                initdataPresent.textContent = 'Нет';
+                initdataPresent.textContent = 'Нет ❌';
                 initdataPresent.style.color = 'red';
                 initdataLength.textContent = '0';
                 initdataContent.textContent = 'WebApp не найден';
+                webappInfo.textContent = 'WebApp не найден';
 
-                console.log('WebApp not found');
+                console.log('❌ WebApp not found');
             }
         }
 
